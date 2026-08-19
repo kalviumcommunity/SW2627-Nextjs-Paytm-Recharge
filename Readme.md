@@ -128,3 +128,113 @@ Blocked
 - JSON Server / Express API
 
 ---
+
+## 📂 Folder Structure
+
+src/
+│
+├── components/
+│   ├── RechargeForm.jsx
+│   ├── RechargeHistory.jsx
+│   ├── TransactionCard.jsx
+│   └── Filters.jsx
+│
+├── hooks/
+│   └── usePolling.js
+│
+├── services/
+│   └── api.js
+│
+├── utils/
+│   └── duplicateCheck.js
+│
+├── pages/
+│   └── Home.jsx
+│
+├── App.jsx
+└── main.jsx
+
+---
+
+## 🔄 Application Flow
+
+User enters recharge details
+            │
+            ▼
+     Submit Recharge
+            │
+            ▼
+     POST /recharge
+            │
+            ▼
+ Transaction created
+(Status = Pending)
+            │
+            ▼
+Added instantly to history
+            │
+            ▼
+Polling starts
+            │
+            ▼
+GET /transactions
+            │
+            ▼
+Status changes
+            │
+            ▼
+UI updates automatically
+
+---
+
+## 📡 API Endpoints
+
+### Create Recharge
+
+POST /recharge
+
+Example Request
+
+json
+{
+  "mobile": "9876543210",
+  "operator": "Jio",
+  "amount": 299
+}
+
+Example Response
+
+json
+{
+  "transactionId": "TXN1001",
+  "status": "PENDING"
+}
+
+---
+
+### Get Transactions
+
+GET /transactions
+
+Returns all recharge transactions.
+
+---
+
+### Get Single Transaction
+
+GET /transactions/:id
+
+Returns details for a single recharge.
+
+---
+
+## 📊 Status Flow
+
+Pending
+   │
+   ├────────► Success
+   │
+   └────────► Failed
+Status updates are received through polling.
+
+---
