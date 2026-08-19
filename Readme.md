@@ -238,3 +238,104 @@ Pending
 Status updates are received through polling.
 
 ---
+
+## ⚙️ Installation
+
+Clone the repository
+
+
+bash
+git clone <repository-url>
+Move into the project
+
+
+bash
+cd recharge-history
+Install dependencies
+
+
+bash
+npm install
+Start the development server
+
+
+bash
+npm run dev
+If using a mock backend
+
+
+bash
+npm run server
+---
+
+## 🎯 Future Improvements
+
+
+Authentication
+
+Search by Mobile Number
+
+Infinite Scrolling
+
+Pagination
+
+Export Recharge History
+
+Dark Mode
+
+Push Notifications
+
+WebSocket-based real-time updates (instead of polling)
+
+---
+
+## 📌 Assumptions
+
+
+Transaction status is updated by the backend.
+
+Polling occurs every **5 seconds**.
+
+Duplicate recharge prevention is handled on the client side.
+
+Date filtering is based on the transaction creation time.
+
+---
+
+## 📷 Screens
+
+
+Recharge Form
+
+Recharge History
+
+Live Status Updates
+
+Filters
+
+Duplicate Recharge Warning
+
+---
+
+## 👨‍💻 Author
+
+Built as a frontend system design assignment demonstrating:
+
+
+React Fundamentals
+
+API Integration
+
+State Management
+
+Polling
+
+Real-Time UI Updates
+
+Filtering
+
+Duplicate Request Prevention
+
+Component-Based Architecture
+
+---
