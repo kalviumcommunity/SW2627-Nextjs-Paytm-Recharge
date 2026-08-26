@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { rechargeSchema } from "./rechargeSchema";
 
 const operators = ["Jio", "Airtel", "Vi", "BSNL"];
 
@@ -11,15 +12,27 @@ const plans = [
   { amount: 719, validity: "84 days", description: "1.5 GB/day" },
 ];
 
+type FormErrors = {
+  mobileNumber?: string;
+  selectedOperator?: string;
+  amount?: string;
+};
+
 export default function RechargeForm() {
   const [mobileNumber, setMobileNumber] = useState("");
   const [selectedOperator, setSelectedOperator] = useState("Jio");
   const [selectedPlan, setSelectedPlan] = useState<number | null>(299);
   const [customAmount, setCustomAmount] = useState("");
+  const [errors, setErrors] = useState<FormErrors>({});
 
   const handlePlanSelect = (amount: number) => {
     setSelectedPlan(amount);
     setCustomAmount("");
+
+    setErrors((previous) => ({
+      ...previous,
+      amount: undefined,
+    }));
   };
 
   const handleCustomAmountChange = (
@@ -27,32 +40,50 @@ export default function RechargeForm() {
   ) => {
     setCustomAmount(event.target.value);
     setSelectedPlan(null);
+
+    setErrors((previous) => ({
+      ...previous,
+      amount: undefined,
+    }));
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!/^[6-9]\d{9}$/.test(mobileNumber)) {
-      alert("Please enter a valid 10-digit mobile number.");
+    const amount = customAmount
+      ? Number(customAmount)
+      : selectedPlan ?? 0;
+
+    const result = rechargeSchema.safeParse({
+      mobileNumber,
+      selectedOperator,
+      amount,
+    });
+
+    if (!result.success) {
+      const fieldErrors = result.error.flatten().fieldErrors;
+
+      setErrors({
+        mobileNumber: fieldErrors.mobileNumber?.[0],
+        selectedOperator: fieldErrors.selectedOperator?.[0],
+        amount: fieldErrors.amount?.[0],
+      });
+
       return;
     }
 
-    const amount = customAmount || selectedPlan;
-
-    if (!amount) {
-      alert("Please select a recharge plan or enter an amount.");
-      return;
-    }
+    setErrors({});
 
     alert(
-      `Recharge request: ${mobileNumber} | ${selectedOperator} | ₹${amount}`,
+      `Recharge request: ${result.data.mobileNumber} | ${result.data.selectedOperator} | Rs. ${result.data.amount}`,
     );
   };
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
+      noValidate
+      className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8"
     >
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900">
@@ -73,7 +104,13 @@ export default function RechargeForm() {
           Mobile Number
         </label>
 
-        <div className="flex overflow-hidden rounded-xl border border-gray-300 focus-within:border-blue-500">
+        <div
+          className={`flex overflow-hidden rounded-xl border ${
+            errors.mobileNumber
+              ? "border-red-500"
+              : "border-gray-300 focus-within:border-blue-500"
+          }`}
+        >
           <span className="flex items-center border-r border-gray-300 bg-gray-50 px-4 text-sm text-gray-600">
             +91
           </span>
@@ -85,12 +122,23 @@ export default function RechargeForm() {
             maxLength={10}
             placeholder="Enter 10-digit mobile number"
             value={mobileNumber}
-            onChange={(event) =>
-              setMobileNumber(event.target.value.replace(/\D/g, ""))
-            }
+            onChange={(event) => {
+              setMobileNumber(event.target.value.replace(/\D/g, ""));
+
+              setErrors((previous) => ({
+                ...previous,
+                mobileNumber: undefined,
+              }));
+            }}
             className="w-full px-4 py-3 outline-none"
           />
         </div>
+
+        {errors.mobileNumber && (
+          <p className="mt-2 text-sm text-red-600">
+            {errors.mobileNumber}
+          </p>
+        )}
       </div>
 
       {/* Operator */}
@@ -104,7 +152,14 @@ export default function RechargeForm() {
             <button
               key={operator}
               type="button"
-              onClick={() => setSelectedOperator(operator)}
+              onClick={() => {
+                setSelectedOperator(operator);
+
+                setErrors((previous) => ({
+                  ...previous,
+                  selectedOperator: undefined,
+                }));
+              }}
               className={`rounded-xl border px-4 py-3 text-sm font-semibold transition ${
                 selectedOperator === operator
                   ? "border-blue-600 bg-blue-50 text-blue-600"
@@ -115,6 +170,12 @@ export default function RechargeForm() {
             </button>
           ))}
         </div>
+
+        {errors.selectedOperator && (
+          <p className="mt-2 text-sm text-red-600">
+            {errors.selectedOperator}
+          </p>
+        )}
       </div>
 
       {/* Plans */}
@@ -136,7 +197,7 @@ export default function RechargeForm() {
               }`}
             >
               <p className="text-lg font-bold text-gray-900">
-                ₹{plan.amount}
+                Rs. {plan.amount}
               </p>
 
               <p className="mt-1 text-xs text-gray-500">
@@ -160,9 +221,15 @@ export default function RechargeForm() {
           Custom Amount
         </label>
 
-        <div className="flex overflow-hidden rounded-xl border border-gray-300 focus-within:border-blue-500">
-          <span className="flex items-center bg-gray-50 px-4 text-gray-600">
-            ₹
+        <div
+          className={`flex overflow-hidden rounded-xl border ${
+            errors.amount
+              ? "border-red-500"
+              : "border-gray-300 focus-within:border-blue-500"
+          }`}
+        >
+          <span className="flex items-center border-r border-gray-300 bg-gray-50 px-4 text-gray-600">
+            Rs.
           </span>
 
           <input
@@ -175,12 +242,18 @@ export default function RechargeForm() {
             className="w-full px-4 py-3 outline-none"
           />
         </div>
+
+        {errors.amount && (
+          <p className="mt-2 text-sm text-red-600">
+            {errors.amount}
+          </p>
+        )}
       </div>
 
       {/* Submit */}
       <button
         type="submit"
-        className="w-full rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700"
+        className="w-full rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700 hover:bg-blue-700"
       >
         Proceed to Recharge
       </button>
