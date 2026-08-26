@@ -1,6 +1,8 @@
-import { apiRequest } from "./api";
-import type { Operator } from "../types/operator";
+import { api } from "./api";
+import { Operator } from "@/types/operator";
 
-export function getOperators() {
-  return apiRequest<Operator[]>("/operators");
-}
+export const operatorService = {
+  getOperators() {
+    return api.get<Operator[]>("/operators");
+  },
+};

@@ -1,10 +1,14 @@
-import { apiRequest } from "./api";
-import type { Transaction } from "../types/transaction";
+import { api } from "./api";
+import { Transaction } from "@/types/transaction";
 
-export function getTransactions() {
-  return apiRequest<Transaction[]>("/transactions");
-}
+export const transactionService = {
+  getTransactions() {
+    return api.get<Transaction[]>("/transactions");
+  },
 
-export function getTransactionStatus(transactionId: string) {
-  return apiRequest<Transaction>(`/status/${transactionId}`);
-}
+  getStatus(transactionId: string) {
+    return api.get<Transaction>(
+      `/status/${transactionId}`
+    );
+  },
+};
