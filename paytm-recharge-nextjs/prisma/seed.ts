@@ -24,7 +24,17 @@ async function main() {
     });
   }
 
-  console.log("Operators seeded successfully.");
+  await prisma.user.upsert({
+    where: { email: "dev@paytm-recharge.local" },
+    update: {},
+    create: {
+      name: "Development User",
+      email: "dev@paytm-recharge.local",
+      phone: "9999999999",
+    },
+  });
+
+  console.log("Operators and development user seeded successfully.");
 }
 
 main()
