@@ -1,66 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type TransactionStatus = "SUCCESS" | "FAILED" | "PENDING";
 
 type Transaction = {
-  id: string;
+  id: number;
   mobileNumber: string;
-  operator: string;
   amount: number;
-  plan: string;
   status: TransactionStatus;
-  date: string;
+  createdAt: string;
+  operator: {
+    name: string;
+  };
 };
-
-const transactions: Transaction[] = [
-  {
-    id: "TXN883901",
-    mobileNumber: "+91 9876543210",
-    operator: "Jio",
-    amount: 299,
-    plan: "1.5GB/day • 28 Days Pack",
-    status: "SUCCESS",
-    date: "Today, 02:07 PM",
-  },
-  {
-    id: "TXN883895",
-    mobileNumber: "+91 9123456789",
-    operator: "Airtel",
-    amount: 479,
-    plan: "1.5GB/day • 56 Days Pack",
-    status: "SUCCESS",
-    date: "Today, 01:47 PM",
-  },
-  {
-    id: "TXN883710",
-    mobileNumber: "+91 9988776655",
-    operator: "Vi",
-    amount: 199,
-    plan: "1GB/day • 18 Days Pack",
-    status: "FAILED",
-    date: "Today, 12:07 PM",
-  },
-  {
-    id: "TXN881022",
-    mobileNumber: "+91 9876543210",
-    operator: "Jio",
-    amount: 719,
-    plan: "2GB/day • 84 Days Pack",
-    status: "SUCCESS",
-    date: "Today, 10:15 AM",
-  },
-  {
-    id: "TXN879001",
-    mobileNumber: "+91 9411223344",
-    operator: "BSNL",
-    amount: 147,
-    plan: "Unlimited Voice • 30 Days",
-    status: "SUCCESS",
-    date: "Today, 04:45 AM",
-  },
-];
 
 const operatorStyles: Record<string, string> = {
   Jio: "bg-blue-600",
@@ -89,10 +42,35 @@ function StatusBadge({ status }: { status: TransactionStatus }) {
 export default function TransactionHistory() {
   const [filter, setFilter] = useState<"ALL" | TransactionStatus>("ALL");
 
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/transactions")
+      .then((res) => res.json())
+      .then((data) => {
+        setTransactions(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
+
   const filteredTransactions =
     filter === "ALL"
       ? transactions
       : transactions.filter((transaction) => transaction.status === filter);
+
+  if (loading) {
+    return (
+      <div className="p-10 text-center">
+        Loading transactions...
+      </div>
+    );
+  }
 
   return (
     <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
@@ -114,35 +92,31 @@ export default function TransactionHistory() {
         </div>
 
         <div className="mt-5 flex flex-wrap gap-2">
-          {(["ALL", "SUCCESS", "FAILED", "PENDING"] as const).map(
-            (status) => (
-              <button
-                key={status}
-                type="button"
-                onClick={() => setFilter(status)}
-                className={`rounded-lg border px-4 py-2 text-sm font-semibold transition ${
-                  filter === status
-                    ? "border-blue-600 bg-blue-600 text-white"
-                    : "border-gray-200 bg-white text-gray-600 hover:border-blue-300 hover:text-blue-600"
-                }`}
-              >
-                {status === "ALL"
-                  ? "All"
-                  : status.charAt(0) + status.slice(1).toLowerCase()}
-              </button>
-            ),
-          )}
+          {(["ALL", "SUCCESS", "FAILED", "PENDING"] as const).map((status) => (
+            <button
+              key={status}
+              type="button"
+              onClick={() => setFilter(status)}
+              className={`rounded-lg border px-4 py-2 text-sm font-semibold transition ${
+                filter === status
+                  ? "border-blue-600 bg-blue-600 text-white"
+                  : "border-gray-200 bg-white text-gray-600 hover:border-blue-300 hover:text-blue-600"
+              }`}
+            >
+              {status === "ALL"
+                ? "All"
+                : status.charAt(0) + status.slice(1).toLowerCase()}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Desktop table */}
       <div className="hidden overflow-x-auto md:block">
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr className="border-b border-gray-200 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
               <th className="px-6 py-4">Mobile Number</th>
               <th className="px-6 py-4">Operator</th>
-              <th className="px-6 py-4">Plan</th>
               <th className="px-6 py-4">Amount</th>
               <th className="px-6 py-4">Status</th>
               <th className="px-6 py-4">Date</th>
@@ -160,22 +134,19 @@ export default function TransactionHistory() {
                     {transaction.mobileNumber}
                   </p>
                   <p className="mt-1 text-xs text-gray-400">
-                    {transaction.id}
+                    #{transaction.id}
                   </p>
                 </td>
 
                 <td className="px-6 py-5">
                   <span
                     className={`inline-flex h-9 min-w-14 items-center justify-center rounded-lg px-3 text-xs font-bold text-white ${
-                      operatorStyles[transaction.operator]
+                      operatorStyles[transaction.operator.name] ??
+                      "bg-gray-600"
                     }`}
                   >
-                    {transaction.operator}
+                    {transaction.operator.name}
                   </span>
-                </td>
-
-                <td className="px-6 py-5 text-sm text-gray-600">
-                  {transaction.plan}
                 </td>
 
                 <td className="px-6 py-5 font-bold text-gray-900">
@@ -187,7 +158,7 @@ export default function TransactionHistory() {
                 </td>
 
                 <td className="px-6 py-5 text-sm text-gray-500">
-                  {transaction.date}
+                  {new Date(transaction.createdAt).toLocaleString()}
                 </td>
               </tr>
             ))}
@@ -195,55 +166,48 @@ export default function TransactionHistory() {
         </table>
       </div>
 
-      {/* Mobile cards */}
       <div className="divide-y divide-gray-100 md:hidden">
         {filteredTransactions.map((transaction) => (
           <div key={transaction.id} className="p-5">
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start justify-between">
               <div>
-                <p className="font-semibold text-gray-900">
+                <p className="font-semibold">
                   {transaction.mobileNumber}
                 </p>
 
-                <p className="mt-1 text-xs text-gray-400">
-                  {transaction.id}
+                <p className="text-xs text-gray-400">
+                  #{transaction.id}
                 </p>
               </div>
 
-              <p className="text-lg font-bold text-gray-900">
+              <p className="font-bold">
                 ₹{transaction.amount}
               </p>
             </div>
 
-            <div className="mt-4 flex items-center justify-between gap-3">
+            <div className="mt-4 flex justify-between">
               <span
-                className={`inline-flex h-8 items-center rounded-lg px-3 text-xs font-bold text-white ${
-                  operatorStyles[transaction.operator]
+                className={`inline-flex rounded-lg px-3 py-2 text-xs font-bold text-white ${
+                  operatorStyles[transaction.operator.name] ??
+                  "bg-gray-600"
                 }`}
               >
-                {transaction.operator}
+                {transaction.operator.name}
               </span>
 
               <StatusBadge status={transaction.status} />
             </div>
 
-            <p className="mt-3 text-sm text-gray-600">
-              {transaction.plan}
+            <p className="mt-3 text-xs text-gray-400">
+              {new Date(transaction.createdAt).toLocaleString()}
             </p>
-
-            <p className="mt-1 text-xs text-gray-400">{transaction.date}</p>
           </div>
         ))}
       </div>
 
       {filteredTransactions.length === 0 && (
         <div className="px-6 py-12 text-center">
-          <p className="font-semibold text-gray-900">
-            No transactions found
-          </p>
-          <p className="mt-1 text-sm text-gray-500">
-            Try selecting a different status filter.
-          </p>
+          <p className="font-semibold">No transactions found</p>
         </div>
       )}
     </section>
