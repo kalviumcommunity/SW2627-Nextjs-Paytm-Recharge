@@ -1,11 +1,15 @@
-import { api } from "./api";
-import {
-  RechargeRequest,
-  RechargeResponse,
-} from "@/types/recharge";
+import { RechargeRequest, RechargeResponse } from "@/types/recharge";
 
-export const rechargeService = {
-  createRecharge(data: RechargeRequest) {
-    return api.post<RechargeResponse>("/recharge", data);
-  },
-};
+export async function recharge(
+  data: RechargeRequest
+): Promise<RechargeResponse> {
+  const res = await fetch("/api/recharge", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  return res.json();
+}

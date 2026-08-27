@@ -1,8 +1,10 @@
+"use client";
+
 import { useMutation } from "@tanstack/react-query";
-import { rechargeService } from "@/services/recharge.service";
+import { recharge } from "@/services/recharge.service";
 
 export function useRecharge() {
   return useMutation({
-    mutationFn: rechargeService.createRecharge,
+    mutationFn: recharge,
   });
 }
