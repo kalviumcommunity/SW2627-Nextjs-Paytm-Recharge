@@ -1,9 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { recharge } from "@/services/recharge.service";
 import { rechargeSchema } from "./rechargeSchema";
 
 const operators = ["Jio", "Airtel", "Vi", "BSNL"];
+
+const operatorIds: Record<string, number> = {
+  Jio: 1,
+  Airtel: 2,
+  Vi: 3,
+  BSNL: 4,
+};
 
 const plans = [
   { amount: 199, validity: "18 days", description: "1.5 GB/day" },
@@ -47,7 +55,7 @@ export default function RechargeForm() {
     }));
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const amount = customAmount
@@ -74,10 +82,23 @@ export default function RechargeForm() {
 
     setErrors({});
 
-    alert(
-      `Recharge request: ${result.data.mobileNumber} | ${result.data.selectedOperator} | Rs. ${result.data.amount}`,
+    try {
+  const response = await recharge({
+    mobileNumber: result.data.mobileNumber,
+    operatorId: operatorIds[result.data.selectedOperator],
+    amount: result.data.amount,
+  });
+
+  alert(
+    `Recharge created successfully!\nTransaction ID: ${response.transactionId}\nStatus: ${response.status}`,
     );
-  };
+  }   
+    catch (error) {
+    console.error("Recharge failed:", error);
+
+    alert("Recharge failed. Please try again.");
+  }
+}
 
   return (
     <form

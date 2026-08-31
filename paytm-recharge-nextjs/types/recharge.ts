@@ -1,11 +1,10 @@
 export interface RechargeRequest {
   mobileNumber: string;
-  operator: string;
+  operatorId: number;
   amount: number;
 }
 
 export interface RechargeResponse {
-  success: boolean;
   transactionId: string;
   status: "SUCCESS" | "FAILED" | "PENDING";
 }
