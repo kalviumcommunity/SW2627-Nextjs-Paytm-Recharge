@@ -40,6 +40,16 @@ export async function POST(request: Request) {
       );
     }
 
+    if (error instanceof Error && error.message === "Duplicate recharge") {
+  return NextResponse.json(
+    {
+      success: false,
+      error: "Duplicate recharge. Please wait 10 seconds before trying again.",
+    },
+    { status: 409 },
+  );
+}
+
     return NextResponse.json(
       {
         success: false,

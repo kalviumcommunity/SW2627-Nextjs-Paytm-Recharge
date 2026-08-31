@@ -13,7 +13,7 @@ type Transaction = {
   amount: number;
   status: TransactionStatus;
   createdAt: string;
-  operator: {
+  operator?: {
     name: string;
   };
 };
@@ -46,9 +46,7 @@ function isWithinDateRange(
   createdAt: string,
   dateFilter: DateFilter,
 ): boolean {
-  if (dateFilter === "ALL") {
-    return true;
-  }
+  if (dateFilter === "ALL") return true;
 
   const transactionDate = new Date(createdAt);
   const now = new Date();
@@ -59,8 +57,8 @@ function isWithinDateRange(
 
   const days = dateFilter === "LAST_7_DAYS" ? 7 : 30;
   const startDate = new Date();
-
-  startDate.setDate(now.getDate() - days);
+  startDate.setHours(0, 0, 0, 0);
+  startDate.setDate(startDate.getDate() - days);
 
   return transactionDate >= startDate;
 }
@@ -70,11 +68,11 @@ export default function TransactionHistory() {
 
   const [statusFilter, setStatusFilter] =
     useState<"ALL" | TransactionStatus>("ALL");
-
   const [operatorFilter, setOperatorFilter] =
     useState<"ALL" | Operator>("ALL");
-
   const [dateFilter, setDateFilter] = useState<DateFilter>("ALL");
+
+
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter((transaction: Transaction) => {
@@ -83,7 +81,7 @@ export default function TransactionHistory() {
 
       const matchesOperator =
         operatorFilter === "ALL" ||
-        transaction.operator.name === operatorFilter;
+        transaction.operator?.name === operatorFilter;
 
       const matchesDate = isWithinDateRange(
         transaction.createdAt,
@@ -104,6 +102,10 @@ export default function TransactionHistory() {
     statusFilter !== "ALL" ||
     operatorFilter !== "ALL" ||
     dateFilter !== "ALL";
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString();
+  };
 
   if (isLoading) {
     return (
@@ -135,7 +137,6 @@ export default function TransactionHistory() {
             <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">
               Recharge History
             </h1>
-
             <p className="mt-1 text-sm text-gray-500">
               View and track your recent mobile recharges.
             </p>
@@ -156,7 +157,6 @@ export default function TransactionHistory() {
             >
               Status
             </label>
-
             <select
               id="status-filter"
               value={statusFilter}
@@ -182,7 +182,6 @@ export default function TransactionHistory() {
             >
               Operator
             </label>
-
             <select
               id="operator-filter"
               value={operatorFilter}
@@ -209,7 +208,6 @@ export default function TransactionHistory() {
             >
               Date
             </label>
-
             <select
               id="date-filter"
               value={dateFilter}
@@ -261,7 +259,6 @@ export default function TransactionHistory() {
                   <p className="font-semibold text-gray-900">
                     {transaction.mobileNumber}
                   </p>
-
                   <p className="mt-1 text-xs text-gray-400">
                     #{transaction.id}
                   </p>
@@ -270,11 +267,11 @@ export default function TransactionHistory() {
                 <td className="px-6 py-5">
                   <span
                     className={`inline-flex h-9 min-w-14 items-center justify-center rounded-lg px-3 text-xs font-bold text-white ${
-                      operatorStyles[transaction.operator.name] ??
+                      operatorStyles[transaction.operator?.name ?? ""] ??
                       "bg-gray-600"
                     }`}
                   >
-                    {transaction.operator.name}
+                    {transaction.operator?.name ?? "Unknown"}
                   </span>
                 </td>
 
@@ -287,7 +284,7 @@ export default function TransactionHistory() {
                 </td>
 
                 <td className="px-6 py-5 text-sm text-gray-500">
-                  {new Date(transaction.createdAt).toLocaleString()}
+                  {formatDate(transaction.createdAt)}
                 </td>
               </tr>
             ))}
@@ -304,8 +301,7 @@ export default function TransactionHistory() {
                 <p className="font-semibold text-gray-900">
                   {transaction.mobileNumber}
                 </p>
-
-                <p className="text-xs text-gray-400">
+                <p className="mt-1 text-xs text-gray-400">
                   #{transaction.id}
                 </p>
               </div>
@@ -318,18 +314,18 @@ export default function TransactionHistory() {
             <div className="mt-4 flex justify-between">
               <span
                 className={`inline-flex rounded-lg px-3 py-2 text-xs font-bold text-white ${
-                  operatorStyles[transaction.operator.name] ??
+                  operatorStyles[transaction.operator?.name ?? ""] ??
                   "bg-gray-600"
                 }`}
               >
-                {transaction.operator.name}
+                {transaction.operator?.name ?? "Unknown"}
               </span>
 
               <StatusBadge status={transaction.status} />
             </div>
 
             <p className="mt-3 text-xs text-gray-400">
-              {new Date(transaction.createdAt).toLocaleString()}
+              {formatDate(transaction.createdAt)}
             </p>
           </div>
         ))}
@@ -341,7 +337,6 @@ export default function TransactionHistory() {
           <p className="font-semibold text-gray-900">
             No transactions found
           </p>
-
           <p className="mt-1 text-sm text-gray-500">
             Try changing or clearing your filters.
           </p>

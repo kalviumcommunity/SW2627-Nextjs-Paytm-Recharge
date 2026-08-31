@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 
 const DEVELOPMENT_USER_ID = 1;
+const DUPLICATE_WINDOW_SECONDS = 10;
 
 interface CreateRechargeData {
   mobileNumber: string;
@@ -29,6 +30,27 @@ export async function createRechargeTransaction(
 
   if (!user) {
     throw new Error("Development user not found");
+  }
+
+  const duplicateSince = new Date(
+    Date.now() - DUPLICATE_WINDOW_SECONDS * 1000,
+  );
+
+  const duplicateTransaction =
+    await prisma.rechargeTransaction.findFirst({
+      where: {
+        userId: user.id,
+        mobileNumber: data.mobileNumber,
+        operatorId: operator.id,
+        amount: data.amount,
+        createdAt: {
+          gte: duplicateSince,
+        },
+      },
+    });
+
+  if (duplicateTransaction) {
+    throw new Error("Duplicate recharge");
   }
 
   const transaction = await prisma.rechargeTransaction.create({
