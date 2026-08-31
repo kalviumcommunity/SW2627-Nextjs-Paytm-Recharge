@@ -6,50 +6,44 @@ datasource db {
   provider = "postgresql"
 }
 
-enum RechargeStatus {
-  PENDING
-  SUCCESS
-  FAILED
-}
-
 model User {
-  id           Int                    @id @default(autoincrement())
+  id           Int                   @id @default(autoincrement())
   name         String
-  email        String                 @unique
-  phone        String                 @unique
+  email        String                @unique
+  phone        String                @unique
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
   transactions RechargeTransaction[]
-
-  createdAt    DateTime               @default(now())
-  updatedAt    DateTime               @updatedAt
 }
 
 model Operator {
-  id           Int                    @id @default(autoincrement())
-  name         String                 @unique
+  id           Int                   @id @default(autoincrement())
+  name         String                @unique
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
   transactions RechargeTransaction[]
-
-  createdAt    DateTime               @default(now())
-  updatedAt    DateTime               @updatedAt
 }
 
 model RechargeTransaction {
   id            Int            @id @default(autoincrement())
   transactionId String         @unique @default(uuid())
-
   userId        Int
   operatorId    Int
-
   mobileNumber  String
   amount        Decimal        @db.Decimal(10, 2)
   status        RechargeStatus @default(PENDING)
-
-  user          User           @relation(fields: [userId], references: [id])
-  operator      Operator       @relation(fields: [operatorId], references: [id])
-
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+  operator      Operator       @relation(fields: [operatorId], references: [id])
+  user          User           @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([operatorId])
   @@index([createdAt])
+}
+
+enum RechargeStatus {
+  PENDING
+  SUCCESS
+  FAILED
 }
