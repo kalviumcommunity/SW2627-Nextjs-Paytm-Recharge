@@ -2,21 +2,12 @@
 
 import { useMemo, useState } from "react";
 import { useTransactions } from "@/hooks/useTransactions";
+import { usePolling } from "@/hooks/usePolling";
+import type { Transaction } from "@/types/transaction";
 
 type TransactionStatus = "SUCCESS" | "FAILED" | "PENDING";
 type Operator = "Jio" | "Airtel" | "Vi" | "BSNL";
 type DateFilter = "ALL" | "TODAY" | "LAST_7_DAYS" | "LAST_30_DAYS";
-
-type Transaction = {
-  id: number;
-  mobileNumber: string;
-  amount: number;
-  status: TransactionStatus;
-  createdAt: string;
-  operator?: {
-    name: string;
-  };
-};
 
 const operatorStyles: Record<string, string> = {
   Jio: "bg-blue-600",
@@ -102,6 +93,12 @@ export default function TransactionHistory() {
   refetch,
   isFetching,
 } = useTransactions();
+
+  const pendingTransactions = transactions.filter(
+    (t: Transaction) => t.status === "PENDING"
+  );
+  
+  usePolling(pendingTransactions);
 
   const [statusFilter, setStatusFilter] =
     useState<"ALL" | TransactionStatus>("ALL");
