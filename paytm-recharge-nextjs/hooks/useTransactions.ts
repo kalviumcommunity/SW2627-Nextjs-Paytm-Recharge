@@ -7,5 +7,6 @@ export function useTransactions() {
   return useQuery({
     queryKey: ["transactions"],
     queryFn: getTransactions,
+    retry: 2,
   });
 }
