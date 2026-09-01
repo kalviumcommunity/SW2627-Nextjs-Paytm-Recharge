@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { recharge } from "@/services/recharge.service";
+import { toast } from "sonner";
+import { useRecharge } from "@/hooks/useRecharge";
 import { rechargeSchema } from "./rechargeSchema";
 
 const operators = ["Jio", "Airtel", "Vi", "BSNL"];
@@ -27,6 +28,7 @@ type FormErrors = {
 };
 
 export default function RechargeForm() {
+  const rechargeMutation = useRecharge();
   const [mobileNumber, setMobileNumber] = useState("");
   const [selectedOperator, setSelectedOperator] = useState("Jio");
   const [selectedPlan, setSelectedPlan] = useState<number | null>(299);
@@ -83,22 +85,23 @@ export default function RechargeForm() {
     setErrors({});
 
     try {
-  const response = await recharge({
-    mobileNumber: result.data.mobileNumber,
-    operatorId: operatorIds[result.data.selectedOperator],
-    amount: result.data.amount,
-  });
+      const response = await rechargeMutation.mutateAsync({
+        mobileNumber: result.data.mobileNumber,
+        operatorId: operatorIds[result.data.selectedOperator],
+        amount: result.data.amount,
+      });
 
-  alert(
-    `Recharge created successfully!\nTransaction ID: ${response.transactionId}\nStatus: ${response.status}`,
-    );
-  }   
-    catch (error) {
-    console.error("Recharge failed:", error);
+      toast.success("Recharge successful", {
+        description: `Transaction ID: ${response.transactionId}`,
+      });
+    } catch (error) {
+      console.error("Recharge failed:", error);
 
-    alert("Recharge failed. Please try again.");
-  }
-}
+      toast.error("Recharge failed", {
+        description: "Please check your details and try again.",
+      });
+    }
+  };
 
   return (
     <form
@@ -273,11 +276,12 @@ export default function RechargeForm() {
 
       {/* Submit */}
       <button
-        type="submit"
-        className="w-full rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700 hover:bg-blue-700"
-      >
-        Proceed to Recharge
-      </button>
+  type="submit"
+  disabled={rechargeMutation.isPending}
+  className="w-full rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+>
+  {rechargeMutation.isPending ? "Processing Recharge..." : "Proceed to Recharge"}
+</button>
     </form>
   );
 }
