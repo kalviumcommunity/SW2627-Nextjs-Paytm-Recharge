@@ -1,0 +1,19 @@
+import { prisma } from "@/lib/prisma";
+
+export async function getRechargeStatus(transactionId: string) {
+  const transaction = await prisma.rechargeTransaction.findUnique({
+    where: {
+      transactionId,
+    },
+    select: {
+      transactionId: true,
+      status: true,
+    },
+  });
+
+  if (!transaction) {
+    throw new Error("Transaction not found");
+  }
+
+  return transaction;
+}

@@ -8,8 +8,8 @@ import { rechargeSchema } from "./rechargeSchema";
 const operators = ["Jio", "Airtel", "Vi", "BSNL"];
 
 const operatorIds: Record<string, number> = {
-  Jio: 1,
-  Airtel: 2,
+  Airtel: 1,
+  Jio: 2,
   Vi: 3,
   BSNL: 4,
 };
