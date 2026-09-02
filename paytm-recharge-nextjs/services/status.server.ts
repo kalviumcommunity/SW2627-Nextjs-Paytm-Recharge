@@ -8,6 +8,7 @@ export async function getRechargeStatus(transactionId: string) {
     select: {
       transactionId: true,
       status: true,
+      updatedAt: true,
     },
   });
 
@@ -16,4 +17,25 @@ export async function getRechargeStatus(transactionId: string) {
   }
 
   return transaction;
+}
+
+export async function getBatchRechargeStatus(transactionIds: string[]) {
+  if (!transactionIds.length) {
+    return [];
+  }
+
+  const transactions = await prisma.rechargeTransaction.findMany({
+    where: {
+      transactionId: {
+        in: transactionIds,
+      },
+    },
+    select: {
+      transactionId: true,
+      status: true,
+      updatedAt: true,
+    },
+  });
+
+  return transactions;
 }
