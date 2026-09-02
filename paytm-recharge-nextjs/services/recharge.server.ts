@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { processMockRecharge } from "@/services/mock-recharge-provider.server";
 
 const DEVELOPMENT_USER_ID = 1;
 const DUPLICATE_WINDOW_SECONDS = 10;
@@ -62,6 +63,8 @@ export async function createRechargeTransaction(
       status: "PENDING",
     },
   });
+
+  void processMockRecharge(transaction.transactionId);
 
   return transaction;
 }
