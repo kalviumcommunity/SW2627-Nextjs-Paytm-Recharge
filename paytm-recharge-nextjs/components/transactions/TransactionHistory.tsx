@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useTransactions } from "@/hooks/useTransactions";
-import { usePolling } from "@/hooks/usePolling";
+import { useRealtimeTransactions, ConnectionMode } from "@/hooks/useRealtimeTransactions";
 import type { Transaction } from "@/types/transaction";
 
 type TransactionStatus = "SUCCESS" | "FAILED" | "PENDING";
@@ -33,8 +33,59 @@ function StatusBadge({ status }: { status: TransactionStatus }) {
     <span
       className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold ${statusStyles[status]}`}
     >
-      <span className="h-2 w-2 rounded-full bg-current" />
+      <span
+        className={`h-2 w-2 rounded-full bg-current ${
+          status === "PENDING" ? "animate-ping" : ""
+        }`}
+      />
       {statusLabel}
+    </span>
+  );
+}
+
+function ConnectionStatusBadge({
+  mode,
+  pendingCount,
+}: {
+  mode: ConnectionMode;
+  pendingCount: number;
+}) {
+  if (mode === "live") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 shadow-xs">
+        <span className="relative flex h-2 w-2">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+        </span>
+        ⚡ Real-time SSE ({pendingCount} pending)
+      </span>
+    );
+  }
+
+  if (mode === "polling") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700 shadow-xs">
+        <span className="relative flex h-2 w-2">
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+        </span>
+        🔄 Polling Active ({pendingCount} pending)
+      </span>
+    );
+  }
+
+  if (mode === "connecting") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 shadow-xs">
+        <span className="h-2 w-2 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+        Connecting stream...
+      </span>
+    );
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs font-medium text-gray-600">
+      <span className="h-2 w-2 rounded-full bg-gray-400" />
+      Real-time Ready
     </span>
   );
 }
@@ -69,44 +120,39 @@ function TransactionSkeleton() {
       </div>
 
       <div className="divide-y divide-gray-100">
-  {Array.from({ length: 5 }).map((_, index) => (
-    <div
-      key={index}
-      className="flex flex-col gap-4 px-5 py-6 md:flex-row md:items-center md:gap-6 md:px-6"
-    >
-      <div className="h-5 w-40 animate-pulse rounded bg-gray-200" />
-      <div className="h-8 w-20 animate-pulse rounded bg-gray-200" />
-      <div className="h-6 w-20 animate-pulse rounded bg-gray-200" />
-      <div className="h-8 w-24 animate-pulse rounded-full bg-gray-200" />
-      <div className="h-5 w-32 animate-pulse rounded bg-gray-200" />
-    </div>
-  ))}
-</div>
+        {Array.from({ length: 5 }).map((_, index) => (
+          <div
+            key={index}
+            className="flex flex-col gap-4 px-5 py-6 md:flex-row md:items-center md:gap-6 md:px-6"
+          >
+            <div className="h-5 w-40 animate-pulse rounded bg-gray-200" />
+            <div className="h-8 w-20 animate-pulse rounded bg-gray-200" />
+            <div className="h-6 w-20 animate-pulse rounded bg-gray-200" />
+            <div className="h-8 w-24 animate-pulse rounded-full bg-gray-200" />
+            <div className="h-5 w-32 animate-pulse rounded bg-gray-200" />
+          </div>
+        ))}
+      </div>
     </section>
   );
 }
+
 export default function TransactionHistory() {
   const {
-  data: transactions = [],
-  isLoading,
-  isError,
-  refetch,
-  isFetching,
-} = useTransactions();
+    data: transactions = [],
+    isLoading,
+    isError,
+    refetch,
+    isFetching,
+  } = useTransactions();
 
-  const pendingTransactions = transactions.filter(
-    (t: Transaction) => t.status === "PENDING"
-  );
-  
-  usePolling(pendingTransactions);
+  const { connectionStatus, pendingCount } = useRealtimeTransactions(transactions);
 
   const [statusFilter, setStatusFilter] =
     useState<"ALL" | TransactionStatus>("ALL");
   const [operatorFilter, setOperatorFilter] =
     useState<"ALL" | Operator>("ALL");
   const [dateFilter, setDateFilter] = useState<DateFilter>("ALL");
-
-
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter((transaction: Transaction) => {
@@ -142,31 +188,31 @@ export default function TransactionHistory() {
   };
 
   if (isLoading) {
-  return <TransactionSkeleton />;
-}
+    return <TransactionSkeleton />;
+  }
 
   if (isError) {
-  return (
-    <div className="rounded-2xl border border-red-200 bg-red-50 p-10 text-center shadow-sm">
-      <p className="font-semibold text-red-700">
-        Failed to load transactions.
-      </p>
+    return (
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-10 text-center shadow-sm">
+        <p className="font-semibold text-red-700">
+          Failed to load transactions.
+        </p>
 
-      <p className="mt-1 text-sm text-red-600">
-        Something went wrong while loading your recharge history.
-      </p>
+        <p className="mt-1 text-sm text-red-600">
+          Something went wrong while loading your recharge history.
+        </p>
 
-      <button
-        type="button"
-        onClick={() => refetch()}
-        disabled={isFetching}
-        className="mt-4 rounded-lg bg-red-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        {isFetching ? "Retrying..." : "Try Again"}
-      </button>
-    </div>
-  );
-}
+        <button
+          type="button"
+          onClick={() => refetch()}
+          disabled={isFetching}
+          className="mt-4 rounded-lg bg-red-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isFetching ? "Retrying..." : "Try Again"}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
@@ -174,11 +220,17 @@ export default function TransactionHistory() {
       <div className="border-b border-gray-200 px-5 py-5 sm:px-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">
-              Recharge History
-            </h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">
+                Recharge History
+              </h1>
+              <ConnectionStatusBadge
+                mode={connectionStatus}
+                pendingCount={pendingCount}
+              />
+            </div>
             <p className="mt-1 text-sm text-gray-500">
-              View and track your recent mobile recharges.
+              View and track your recent mobile recharges in real time.
             </p>
           </div>
 
@@ -186,6 +238,7 @@ export default function TransactionHistory() {
             {filteredTransactions.length} transactions
           </span>
         </div>
+
 
         {/* Filters */}
         <div className="mt-5 grid gap-4 sm:grid-cols-3">
