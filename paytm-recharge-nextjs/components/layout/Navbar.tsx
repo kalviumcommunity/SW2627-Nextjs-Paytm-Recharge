@@ -19,7 +19,7 @@ export default function Navbar() {
 
   return (
     <header className="border-b border-gray-200 bg-white shadow-sm">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
         <Link
           href="/recharge"
           className="text-xl font-bold text-blue-600"
@@ -27,7 +27,7 @@ export default function Navbar() {
           Paytm Recharge
         </Link>
 
-        <nav className="flex items-center gap-2">
+        <nav className="flex w-full gap-2 md:w-auto">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
 
@@ -35,7 +35,7 @@ export default function Navbar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                className={`flex-1 rounded-lg px-3 py-2 text-center text-sm font-semibold transition md:flex-none md:px-4 ${
                   isActive
                     ? "bg-blue-600 text-white"
                     : "text-gray-600 hover:bg-blue-50 hover:text-blue-600"
