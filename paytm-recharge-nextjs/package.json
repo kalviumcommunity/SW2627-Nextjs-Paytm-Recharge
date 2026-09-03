@@ -6,8 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "tsx --env-file=.env tests/e2e/e2e-integration.test.ts",
+    "test:e2e": "tsx --env-file=.env tests/e2e/e2e-integration.test.ts"
   },
+
   "dependencies": {
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
