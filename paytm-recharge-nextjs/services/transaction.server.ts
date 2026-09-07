@@ -1,11 +1,12 @@
 import { prisma } from "@/lib/prisma";
-
-const DEVELOPMENT_USER_ID = 1;
+import { getOrCreateDefaultUser } from "@/services/recharge.server";
 
 export async function getTransactionHistory() {
+  const user = await getOrCreateDefaultUser();
+
   return prisma.rechargeTransaction.findMany({
     where: {
-      userId: DEVELOPMENT_USER_ID,
+      userId: user.id,
     },
     include: {
       operator: true,

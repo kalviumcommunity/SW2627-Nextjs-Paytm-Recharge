@@ -40,6 +40,8 @@ model RechargeTransaction {
   @@index([userId])
   @@index([operatorId])
   @@index([createdAt])
+  @@index([userId, mobileNumber, operatorId, amount, createdAt])
+  @@index([mobileNumber, operatorId, createdAt])
 }
 
 enum RechargeStatus {
