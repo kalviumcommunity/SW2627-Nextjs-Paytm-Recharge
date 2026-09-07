@@ -9,6 +9,7 @@ export async function getRechargeStatus(transactionId: string) {
       transactionId: true,
       status: true,
       updatedAt: true,
+      createdAt: true,
     },
   });
 
