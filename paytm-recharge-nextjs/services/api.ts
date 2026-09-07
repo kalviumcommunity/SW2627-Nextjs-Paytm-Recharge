@@ -12,17 +12,7 @@ async function request<T>(
   });
 
   if (!response.ok) {
-    const rawText = await response.text();
-    let errorMessage = rawText;
-    try {
-      const parsed = JSON.parse(rawText);
-      if (parsed && typeof parsed.error === "string") {
-        errorMessage = parsed.error;
-      }
-    } catch {
-      // Keep rawText if not JSON
-    }
-    throw new Error(errorMessage || `Request failed with status ${response.status}`);
+    throw new Error(await response.text());
   }
 
   return response.json();
