@@ -29,13 +29,18 @@ type FormErrors = {
 
 export default function RechargeForm() {
   const rechargeMutation = useRecharge();
+
   const [mobileNumber, setMobileNumber] = useState("");
   const [selectedOperator, setSelectedOperator] = useState("Jio");
   const [selectedPlan, setSelectedPlan] = useState<number | null>(299);
   const [customAmount, setCustomAmount] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
 
+  const isSubmitting = rechargeMutation.isPending;
+
   const handlePlanSelect = (amount: number) => {
+    if (isSubmitting) return;
+
     setSelectedPlan(amount);
     setCustomAmount("");
 
@@ -48,6 +53,8 @@ export default function RechargeForm() {
   const handleCustomAmountChange = (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
+    if (isSubmitting) return;
+
     setCustomAmount(event.target.value);
     setSelectedPlan(null);
 
@@ -94,6 +101,12 @@ export default function RechargeForm() {
       toast.success("Recharge successful", {
         description: `Transaction ID: ${response.transactionId}`,
       });
+
+      // Reset form after successful recharge.
+      setMobileNumber("");
+      setSelectedOperator("Jio");
+      setSelectedPlan(299);
+      setCustomAmount("");
     } catch (error) {
       console.error("Recharge failed:", error);
 
@@ -146,6 +159,11 @@ export default function RechargeForm() {
             maxLength={10}
             placeholder="Enter 10-digit mobile number"
             value={mobileNumber}
+            disabled={isSubmitting}
+            aria-invalid={Boolean(errors.mobileNumber)}
+            aria-describedby={
+              errors.mobileNumber ? "mobile-error" : undefined
+            }
             onChange={(event) => {
               setMobileNumber(event.target.value.replace(/\D/g, ""));
 
@@ -154,12 +172,12 @@ export default function RechargeForm() {
                 mobileNumber: undefined,
               }));
             }}
-            className="w-full px-4 py-3 outline-none"
+            className="w-full px-4 py-3 outline-none disabled:cursor-not-allowed disabled:bg-gray-100"
           />
         </div>
 
         {errors.mobileNumber && (
-          <p className="mt-2 text-sm text-red-600">
+          <p id="mobile-error" className="mt-2 text-sm text-red-600">
             {errors.mobileNumber}
           </p>
         )}
@@ -176,6 +194,7 @@ export default function RechargeForm() {
             <button
               key={operator}
               type="button"
+              disabled={isSubmitting}
               onClick={() => {
                 setSelectedOperator(operator);
 
@@ -188,7 +207,7 @@ export default function RechargeForm() {
                 selectedOperator === operator
                   ? "border-blue-600 bg-blue-50 text-blue-600"
                   : "border-gray-200 bg-white text-gray-700 hover:border-blue-300"
-              }`}
+              } disabled:cursor-not-allowed disabled:opacity-60`}
             >
               {operator}
             </button>
@@ -213,12 +232,13 @@ export default function RechargeForm() {
             <button
               key={plan.amount}
               type="button"
+              disabled={isSubmitting}
               onClick={() => handlePlanSelect(plan.amount)}
               className={`rounded-xl border p-4 text-left transition ${
                 selectedPlan === plan.amount
                   ? "border-blue-600 bg-blue-50"
                   : "border-gray-200 hover:border-blue-300"
-              }`}
+              } disabled:cursor-not-allowed disabled:opacity-60`}
             >
               <p className="text-lg font-bold text-gray-900">
                 Rs. {plan.amount}
@@ -262,13 +282,16 @@ export default function RechargeForm() {
             min="10"
             placeholder="Enter amount"
             value={customAmount}
+            disabled={isSubmitting}
+            aria-invalid={Boolean(errors.amount)}
+            aria-describedby={errors.amount ? "amount-error" : undefined}
             onChange={handleCustomAmountChange}
-            className="w-full px-4 py-3 outline-none"
+            className="w-full px-4 py-3 outline-none disabled:cursor-not-allowed disabled:bg-gray-100"
           />
         </div>
 
         {errors.amount && (
-          <p className="mt-2 text-sm text-red-600">
+          <p id="amount-error" className="mt-2 text-sm text-red-600">
             {errors.amount}
           </p>
         )}
@@ -276,12 +299,12 @@ export default function RechargeForm() {
 
       {/* Submit */}
       <button
-  type="submit"
-  disabled={rechargeMutation.isPending}
-  className="w-full rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
->
-  {rechargeMutation.isPending ? "Processing Recharge..." : "Proceed to Recharge"}
-</button>
+        type="submit"
+        disabled={isSubmitting}
+        className="w-full rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {isSubmitting ? "Processing Recharge..." : "Proceed to Recharge"}
+      </button>
     </form>
   );
 }
