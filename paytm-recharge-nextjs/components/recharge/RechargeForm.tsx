@@ -96,10 +96,18 @@ export default function RechargeForm() {
       });
     } catch (error) {
       console.error("Recharge failed:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Please check your details and try again.";
 
-      toast.error("Recharge failed", {
-        description: "Please check your details and try again.",
-      });
+      if (errorMessage.toLowerCase().includes("duplicate")) {
+        toast.warning("Duplicate Recharge Detected", {
+          description: errorMessage,
+        });
+      } else {
+        toast.error("Recharge Failed", {
+          description: errorMessage,
+        });
+      }
     }
   };
 
