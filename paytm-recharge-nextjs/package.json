@@ -8,8 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "tsx --env-file=.env tests/e2e/e2e-integration.test.ts",
-    "test:e2e": "tsx --env-file=.env tests/e2e/e2e-integration.test.ts",
-    "test:perf": "tsx --env-file=.env tests/performance/load-test.ts"
+    "test:e2e": "tsx --env-file=.env tests/e2e/e2e-integration.test.ts"
   },
 
   "dependencies": {
