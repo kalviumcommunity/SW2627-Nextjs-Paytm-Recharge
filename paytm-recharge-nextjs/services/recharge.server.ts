@@ -1,17 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { processMockRecharge } from "@/services/mock-recharge-provider.server";
-
-const DEVELOPMENT_USER_ID = 1;
-const DUPLICATE_WINDOW_SECONDS = 10;
-
-interface CreateRechargeData {
-  mobileNumber: string;
-  operatorId: number;
-  amount: number;
-}
+import { DEVELOPMENT_USER_ID, DUPLICATE_WINDOW_SECONDS } from "@/lib/constants";
+import type { RechargeRequest } from "@/types/recharge";
 
 export async function createRechargeTransaction(
-  data: CreateRechargeData,
+  data: RechargeRequest,
 ) {
   const operator = await prisma.operator.findUnique({
     where: {
