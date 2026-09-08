@@ -258,7 +258,7 @@ export default function TransactionHistory() {
                   event.target.value as "ALL" | TransactionStatus,
                 )
               }
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-700 outline-none focus:border-blue-500"
+             className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
               <option value="ALL">All Statuses</option>
               <option value="SUCCESS">Success</option>
@@ -322,7 +322,7 @@ export default function TransactionHistory() {
           <button
             type="button"
             onClick={clearFilters}
-            className="mt-4 rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-blue-400 hover:text-blue-600"
+            className="mt-4 rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"
           >
             Clear Filters
           </button>
@@ -346,7 +346,7 @@ export default function TransactionHistory() {
             {filteredTransactions.map((transaction: Transaction) => (
               <tr
                 key={transaction.id}
-                className="transition hover:bg-gray-50"
+                className="transition-colors hover:bg-gray-50"
               >
                 <td className="px-6 py-5">
                   <p className="font-semibold text-gray-900">
