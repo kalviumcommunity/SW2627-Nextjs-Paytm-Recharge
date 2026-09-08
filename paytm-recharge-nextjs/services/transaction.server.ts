@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
-
-const DEVELOPMENT_USER_ID = 1;
+import { DEVELOPMENT_USER_ID } from "@/lib/constants";
 
 export async function getTransactionHistory() {
   return prisma.rechargeTransaction.findMany({
