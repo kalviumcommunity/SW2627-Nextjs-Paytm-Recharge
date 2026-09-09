@@ -10,6 +10,7 @@ export async function getRechargeStatus(transactionId: string) {
       status: true,
       updatedAt: true,
       createdAt: true,
+      operatorId: true,
     },
   });
 
