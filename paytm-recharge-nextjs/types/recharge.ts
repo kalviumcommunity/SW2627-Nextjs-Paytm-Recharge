@@ -1,3 +1,5 @@
+import type { TransactionStatus } from "./transaction";
+
 export interface RechargeRequest {
   mobileNumber: string;
   operatorId: number;
@@ -6,5 +8,5 @@ export interface RechargeRequest {
 
 export interface RechargeResponse {
   transactionId: string;
-  status: "SUCCESS" | "FAILED" | "PENDING";
+  status: TransactionStatus;
 }

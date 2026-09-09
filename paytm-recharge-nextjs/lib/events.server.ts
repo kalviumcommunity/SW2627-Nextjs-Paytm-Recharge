@@ -1,6 +1,7 @@
 import { EventEmitter } from "events";
+import type { TransactionStatus } from "@/types/transaction";
 
-export type TransactionStatus = "PENDING" | "SUCCESS" | "FAILED";
+export type { TransactionStatus };
 
 export interface TransactionStatusUpdatePayload {
   transactionId: string;
