@@ -11,6 +11,7 @@ export async function getRechargeStatus(transactionId: string) {
       updatedAt: true,
       createdAt: true,
       operatorId: true,
+      mobileNumber: true,
     },
   });
 
