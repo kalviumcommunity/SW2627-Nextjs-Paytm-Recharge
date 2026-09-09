@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { publishTransactionUpdate } from "@/lib/events.server";
+import type { TransactionStatus } from "@/types/transaction";
 
 const MOCK_PROCESSING_DELAY_MS = 5000;
 
@@ -25,7 +26,7 @@ export async function processMockRecharge(transactionId: string) {
   // Notify active real-time listeners (SSE / WebSockets)
   publishTransactionUpdate({
     transactionId: updatedTransaction.transactionId,
-    status: updatedTransaction.status as "PENDING" | "SUCCESS" | "FAILED",
+    status: updatedTransaction.status as TransactionStatus,
     updatedAt: updatedTransaction.updatedAt.toISOString(),
     mobileNumber: updatedTransaction.mobileNumber,
     amount: Number(updatedTransaction.amount),

@@ -1,3 +1,5 @@
+export type TransactionStatus = "PENDING" | "SUCCESS" | "FAILED";
+
 export interface Transaction {
   id: number;
   transactionId: string;
@@ -8,7 +10,7 @@ export interface Transaction {
     name: string;
   };
   amount: number;
-  status: "PENDING" | "SUCCESS" | "FAILED";
+  status: TransactionStatus;
   createdAt: string;
   updatedAt: string;
 }
