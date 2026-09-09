@@ -33,43 +33,25 @@ export default function RechargeForm() {
   const [mobileNumber, setMobileNumber] = useState("");
   const [selectedOperator, setSelectedOperator] = useState("Jio");
   const [selectedPlan, setSelectedPlan] = useState<number | null>(299);
-  const [customAmount, setCustomAmount] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
 
   const isSubmitting = rechargeMutation.isPending;
 
   const handlePlanSelect = (amount: number) => {
-    if (isSubmitting) return;
+  if (isSubmitting) return;
 
-    setSelectedPlan(amount);
-    setCustomAmount("");
+  setSelectedPlan(amount);
 
-    setErrors((previous) => ({
-      ...previous,
-      amount: undefined,
-    }));
-  };
-
-  const handleCustomAmountChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    if (isSubmitting) return;
-
-    setCustomAmount(event.target.value);
-    setSelectedPlan(null);
-
-    setErrors((previous) => ({
-      ...previous,
-      amount: undefined,
-    }));
-  };
+  setErrors((previous) => ({
+    ...previous,
+    amount: undefined,
+  }));
+};
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    const amount = customAmount
-      ? Number(customAmount)
-      : selectedPlan ?? 0;
+    const amount = selectedPlan ?? 0;
 
     const result = rechargeSchema.safeParse({
       mobileNumber,
@@ -106,7 +88,6 @@ export default function RechargeForm() {
       setMobileNumber("");
       setSelectedOperator("Jio");
       setSelectedPlan(299);
-      setCustomAmount("");
     } catch (error) {
       console.error("Recharge failed:", error);
 
@@ -254,47 +235,6 @@ export default function RechargeForm() {
             </button>
           ))}
         </div>
-      </div>
-
-      {/* Custom Amount */}
-      <div className="mb-6">
-        <label
-          htmlFor="amount"
-          className="mb-2 block text-sm font-semibold text-gray-700"
-        >
-          Custom Amount
-        </label>
-
-        <div
-          className={`flex overflow-hidden rounded-xl border ${
-            errors.amount
-              ? "border-red-500"
-              : "border-gray-300 focus-within:border-blue-500"
-          }`}
-        >
-          <span className="flex items-center border-r border-gray-300 bg-gray-50 px-4 text-gray-600">
-            Rs.
-          </span>
-
-          <input
-            id="amount"
-            type="number"
-            min="10"
-            placeholder="Enter amount"
-            value={customAmount}
-            disabled={isSubmitting}
-            aria-invalid={Boolean(errors.amount)}
-            aria-describedby={errors.amount ? "amount-error" : undefined}
-            onChange={handleCustomAmountChange}
-            className="w-full px-4 py-3 outline-none disabled:cursor-not-allowed disabled:bg-gray-100"
-          />
-        </div>
-
-        {errors.amount && (
-          <p id="amount-error" className="mt-2 text-sm text-red-600">
-            {errors.amount}
-          </p>
-        )}
       </div>
 
       {/* Submit */}
