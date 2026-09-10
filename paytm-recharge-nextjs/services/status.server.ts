@@ -12,6 +12,7 @@ export async function getRechargeStatus(transactionId: string) {
       createdAt: true,
       operatorId: true,
       mobileNumber: true,
+      amount: true,
     },
   });
 
