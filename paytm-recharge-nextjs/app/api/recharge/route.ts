@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { DUPLICATE_WINDOW_SECONDS } from "@/lib/constants";
 import { validateRechargeRequest } from "@/lib/validations";
 import { createRechargeTransaction } from "@/services/recharge.server";
 
@@ -41,14 +42,14 @@ export async function POST(request: Request) {
     }
 
     if (error instanceof Error && error.message === "Duplicate recharge") {
-  return NextResponse.json(
-    {
-      success: false,
-      error: "Duplicate recharge. Please wait 10 seconds before trying again.",
-    },
-    { status: 409 },
-  );
-}
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Duplicate recharge. Please wait ${DUPLICATE_WINDOW_SECONDS} seconds before trying again.`,
+        },
+        { status: 409 },
+      );
+    }
 
     return NextResponse.json(
       {
