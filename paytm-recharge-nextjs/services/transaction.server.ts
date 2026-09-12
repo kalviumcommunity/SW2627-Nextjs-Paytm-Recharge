@@ -12,5 +12,6 @@ export async function getTransactionHistory() {
     orderBy: {
       createdAt: "desc",
     },
+    take: 50,
   });
 }
