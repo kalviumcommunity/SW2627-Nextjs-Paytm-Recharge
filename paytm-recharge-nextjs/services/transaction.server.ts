@@ -6,8 +6,18 @@ export async function getTransactionHistory() {
     where: {
       userId: DEVELOPMENT_USER_ID,
     },
-    include: {
-      operator: true,
+    select: {
+      id: true,
+      transactionId: true,
+      mobileNumber: true,
+      amount: true,
+      status: true,
+      createdAt: true,
+      operator: {
+        select: {
+          name: true,
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",
