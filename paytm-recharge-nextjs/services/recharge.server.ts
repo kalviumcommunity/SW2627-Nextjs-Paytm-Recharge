@@ -57,7 +57,12 @@ export async function createRechargeTransaction(
     },
   });
 
-  void processMockRecharge(transaction.transactionId);
+  void processMockRecharge(transaction.transactionId).catch((error) => {
+    console.error(
+      `Failed to process background mock recharge for transaction ${transaction.transactionId}:`,
+      error,
+    );
+  });
 
   return transaction;
 }
