@@ -44,6 +44,15 @@ export function validateRechargeRequest(
     };
   }
 
+  const MAX_RECHARGE_AMOUNT = 5000;
+
+  if (body.amount > MAX_RECHARGE_AMOUNT) {
+    return {
+      valid: false,
+      error: "Amount must not exceed 5000",
+    };
+  }
+
   return {
     valid: true,
     data: {
