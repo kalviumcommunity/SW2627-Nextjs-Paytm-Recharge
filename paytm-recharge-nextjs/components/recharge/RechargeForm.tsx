@@ -38,15 +38,15 @@ export default function RechargeForm() {
   const isSubmitting = rechargeMutation.isPending;
 
   const handlePlanSelect = (amount: number) => {
-  if (isSubmitting) return;
+    if (isSubmitting) return;
 
-  setSelectedPlan(amount);
+    setSelectedPlan(amount);
 
-  setErrors((previous) => ({
-    ...previous,
-    amount: undefined,
-  }));
-};
+    setErrors((previous) => ({
+      ...previous,
+      amount: undefined,
+    }));
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -101,6 +101,7 @@ export default function RechargeForm() {
     <form
       onSubmit={handleSubmit}
       noValidate
+      aria-busy={isSubmitting}
       className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6 lg:p-8"
     >
       <div className="mb-6">
@@ -176,6 +177,7 @@ export default function RechargeForm() {
               key={operator}
               type="button"
               disabled={isSubmitting}
+              aria-pressed={selectedOperator === operator}
               onClick={() => {
                 setSelectedOperator(operator);
 
@@ -184,7 +186,7 @@ export default function RechargeForm() {
                   selectedOperator: undefined,
                 }));
               }}
-              className={`rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-200 ${
+              className={`rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-200 ${
                 selectedOperator === operator
                   ? "border-blue-600 bg-blue-50 text-blue-600"
                   : "border-gray-200 bg-white text-gray-700 hover:border-blue-300"
@@ -214,8 +216,9 @@ export default function RechargeForm() {
               key={plan.amount}
               type="button"
               disabled={isSubmitting}
+              aria-pressed={selectedPlan === plan.amount}
               onClick={() => handlePlanSelect(plan.amount)}
-              className={`rounded-xl border p-4 text-left transition ${
+              className={`rounded-xl border p-4 text-left transition focus:outline-none focus:ring-2 focus:ring-blue-200 ${
                 selectedPlan === plan.amount
                   ? "border-blue-600 bg-blue-50"
                   : "border-gray-200 hover:border-blue-300"
