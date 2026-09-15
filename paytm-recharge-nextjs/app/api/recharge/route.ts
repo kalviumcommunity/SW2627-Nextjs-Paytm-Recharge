@@ -5,7 +5,19 @@ import { createRechargeTransaction } from "@/services/recharge.server";
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    let body: unknown;
+
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid request body",
+        },
+        { status: 400 },
+      );
+    }
 
     const validation = validateRechargeRequest(body);
 
