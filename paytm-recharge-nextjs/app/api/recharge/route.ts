@@ -35,6 +35,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(
       {
+        success: true,
         transactionId: transaction.transactionId,
         status: transaction.status,
       },
