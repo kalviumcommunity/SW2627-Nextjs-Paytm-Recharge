@@ -166,12 +166,12 @@ export default function RechargeForm() {
       </div>
 
       {/* Operator */}
-      <div className="mb-6">
-        <label className="mb-3 block text-sm font-semibold text-gray-700">
-          Select Operator
-        </label>
+      <fieldset className="mb-6">
+          <legend className="mb-3 block text-sm font-semibold text-gray-700">
+           Select Operator
+          </legend>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {operators.map((operator) => (
             <button
               key={operator}
@@ -202,13 +202,13 @@ export default function RechargeForm() {
             {errors.selectedOperator}
           </p>
         )}
-      </div>
+      </fieldset>
 
       {/* Plans */}
-      <div className="mb-6">
-        <label className="mb-3 block text-sm font-semibold text-gray-700">
+      <fieldset className="mb-6">
+        <legend className="mb-3 block text-sm font-semibold text-gray-700">
           Recommended Plans
-        </label>
+        </legend>
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {plans.map((plan) => (
@@ -238,7 +238,7 @@ export default function RechargeForm() {
             </button>
           ))}
         </div>
-      </div>
+      </fieldset>
 
       {/* Submit */}
       <button
