@@ -241,31 +241,43 @@ Status updates are received through polling.
 
 ## ⚙️ Installation
 
-Clone the repository
+### Prerequisites
 
+- Node.js (>= 18) and npm installed.
 
-bash
+### Steps
+
+1. Clone the repository:
+
+```bash
 git clone <repository-url>
-Move into the project
+```
 
+2. Navigate into the project directory (replace with the actual folder name, e.g., `paytm-recharge`):
 
-bash
-cd recharge-history
-Install dependencies
+```bash
+cd paytm-recharge
+```
 
+3. Install dependencies:
 
-bash
+```bash
 npm install
-Start the development server
+```
 
+4. Start the development server:
 
-bash
+```bash
 npm run dev
-If using a mock backend
+```
 
+5. (Optional) Start the mock backend server in a separate terminal:
 
-bash
+```bash
 npm run server
+```
+
+> **Note:** Ensure any required environment variables are defined in a `.env.local` file if the project uses them.
 ---
 
 ## 🎯 Future Improvements
