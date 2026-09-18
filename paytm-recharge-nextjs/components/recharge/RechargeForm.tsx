@@ -2,8 +2,38 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useSendOtp } from "@/hooks/useOtp";
 import { useRecharge } from "@/hooks/useRecharge";
 import { rechargeSchema } from "./rechargeSchema";
+
+function getUserFacingErrorMessage(error: unknown, fallback: string) {
+  if (!(error instanceof Error)) {
+    return fallback;
+  }
+
+  const raw = error.message.trim();
+
+  try {
+    const parsed = JSON.parse(raw) as {
+      message?: unknown;
+      error?: unknown;
+    };
+
+    if (typeof parsed.message === "string" && parsed.message.trim()) {
+      return parsed.message;
+    }
+
+    if (typeof parsed.error === "string" && parsed.error.trim()) {
+      return parsed.error;
+    }
+  } catch {
+    if (raw && raw.length < 200 && !raw.startsWith("<")) {
+      return raw;
+    }
+  }
+
+  return fallback;
+}
 
 const operators = ["Jio", "Airtel", "Vi", "BSNL"];
 
@@ -30,6 +60,7 @@ type FormErrors = {
 
 export default function RechargeForm() {
   const rechargeMutation = useRecharge();
+  const sendOtpMutation = useSendOtp();
 
   const [step, setStep] = useState(1);
   const [mobileNumber, setMobileNumber] = useState("");
@@ -41,6 +72,7 @@ export default function RechargeForm() {
   const [errors, setErrors] = useState<FormErrors>({});
 
   const isSubmitting = rechargeMutation.isPending;
+  const isSendingOtp = sendOtpMutation.isPending;
 
   useEffect(() => {
     if (step !== 2 || resendCountdown === 0) {
@@ -82,21 +114,43 @@ export default function RechargeForm() {
     return true;
   };
 
-  const handleSendOtp = () => {
-    if (isSubmitting) return;
+  const handleSendOtp = async () => {
+    if (isSendingOtp || isSubmitting) return;
 
     if (!validateMobileNumber()) {
       return;
     }
 
-    setOtp("");
-    setOtpError("");
-    setResendCountdown(30);
-    setStep(2);
+    try {
+      const response = await sendOtpMutation.mutateAsync({
+        mobileNumber,
+      });
+
+      if (!response.success) {
+        toast.error("Failed to send OTP", {
+          description: response.message || "Please try again.",
+        });
+        return;
+      }
+
+      setOtp("");
+      setOtpError("");
+      setResendCountdown(30);
+      setStep(2);
+    } catch (error) {
+      console.error("Send OTP failed:", error);
+
+      toast.error("Failed to send OTP", {
+        description: getUserFacingErrorMessage(
+          error,
+          "Please check your mobile number and try again.",
+        ),
+      });
+    }
   };
 
   const handleBackToMobile = () => {
-    if (isSubmitting) return;
+    if (isSendingOtp || isSubmitting) return;
 
     setOtp("");
     setOtpError("");
@@ -123,12 +177,38 @@ export default function RechargeForm() {
     setStep(3);
   };
 
-  const handleResendOtp = () => {
-    if (isSubmitting || resendCountdown > 0) return;
+  const handleResendOtp = async () => {
+    if (isSendingOtp || isSubmitting || resendCountdown > 0) return;
 
-    setOtp("");
-    setOtpError("");
-    setResendCountdown(30);
+    if (!validateMobileNumber()) {
+      return;
+    }
+
+    try {
+      const response = await sendOtpMutation.mutateAsync({
+        mobileNumber,
+      });
+
+      if (!response.success) {
+        toast.error("Failed to send OTP", {
+          description: response.message || "Please try again.",
+        });
+        return;
+      }
+
+      setOtp("");
+      setOtpError("");
+      setResendCountdown(30);
+    } catch (error) {
+      console.error("Resend OTP failed:", error);
+
+      toast.error("Failed to send OTP", {
+        description: getUserFacingErrorMessage(
+          error,
+          "Please check your mobile number and try again.",
+        ),
+      });
+    }
   };
 
   const handlePlanSelect = (amount: number) => {
@@ -199,7 +279,7 @@ export default function RechargeForm() {
     <form
       onSubmit={handleSubmit}
       noValidate
-      aria-busy={isSubmitting}
+      aria-busy={isSubmitting || isSendingOtp}
       className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6 lg:p-8"
     >
       <div className="mb-6">
@@ -280,7 +360,7 @@ export default function RechargeForm() {
                 maxLength={10}
                 placeholder="Enter 10-digit mobile number"
                 value={mobileNumber}
-                disabled={isSubmitting}
+                disabled={isSendingOtp || isSubmitting}
                 aria-invalid={Boolean(errors.mobileNumber)}
                 aria-describedby={
                   errors.mobileNumber ? "mobile-error" : undefined
@@ -307,10 +387,10 @@ export default function RechargeForm() {
           <button
             type="button"
             onClick={handleSendOtp}
-            disabled={isSubmitting}
+            disabled={isSendingOtp || isSubmitting}
             className="w-full rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Send OTP
+            {isSendingOtp ? "Sending OTP..." : "Send OTP"}
           </button>
         </div>
       )}
@@ -344,7 +424,7 @@ export default function RechargeForm() {
               maxLength={6}
               placeholder="Enter 6-digit OTP"
               value={otp}
-              disabled={isSubmitting}
+              disabled={isSendingOtp || isSubmitting}
               aria-invalid={Boolean(otpError)}
               aria-describedby={otpError ? "otp-error" : undefined}
               onChange={(event) => handleOtpChange(event.target.value)}
@@ -369,7 +449,7 @@ export default function RechargeForm() {
               <button
                 type="button"
                 onClick={handleResendOtp}
-                disabled={isSubmitting}
+                disabled={isSendingOtp || isSubmitting}
                 className="font-semibold text-blue-600 transition hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Resend OTP
@@ -381,7 +461,7 @@ export default function RechargeForm() {
             <button
               type="button"
               onClick={handleBackToMobile}
-              disabled={isSubmitting}
+              disabled={isSendingOtp || isSubmitting}
               className="w-full rounded-xl border border-gray-300 bg-white px-6 py-3 font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
               Change Number
@@ -390,7 +470,7 @@ export default function RechargeForm() {
             <button
               type="button"
               onClick={handleVerifyOtp}
-              disabled={isSubmitting}
+              disabled={isSendingOtp || isSubmitting}
               className="w-full rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
               Verify OTP
