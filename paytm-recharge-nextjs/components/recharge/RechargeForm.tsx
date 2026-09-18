@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useRecharge } from "@/hooks/useRecharge";
 import { rechargeSchema } from "./rechargeSchema";
@@ -25,6 +25,7 @@ type FormErrors = {
   mobileNumber?: string;
   selectedOperator?: string;
   amount?: string;
+  otp?: string;
 };
 
 export default function RechargeForm() {
@@ -34,9 +35,31 @@ export default function RechargeForm() {
   const [mobileNumber, setMobileNumber] = useState("");
   const [selectedOperator, setSelectedOperator] = useState("Jio");
   const [selectedPlan, setSelectedPlan] = useState<number | null>(299);
+  const [otp, setOtp] = useState("");
+  const [otpError, setOtpError] = useState("");
+  const [resendCountdown, setResendCountdown] = useState(30);
   const [errors, setErrors] = useState<FormErrors>({});
 
   const isSubmitting = rechargeMutation.isPending;
+
+  useEffect(() => {
+    if (step !== 2 || resendCountdown === 0) {
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      setResendCountdown((previous) => {
+        if (previous <= 1) {
+          window.clearInterval(timer);
+          return 0;
+        }
+
+        return previous - 1;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [step, resendCountdown]);
 
   const validateMobileNumber = () => {
     const result = rechargeSchema.safeParse({
@@ -59,21 +82,53 @@ export default function RechargeForm() {
     return true;
   };
 
-  const handleContinue = () => {
+  const handleSendOtp = () => {
     if (isSubmitting) return;
 
     if (!validateMobileNumber()) {
       return;
     }
 
+    setOtp("");
+    setOtpError("");
+    setResendCountdown(30);
     setStep(2);
   };
 
-  const handleBack = () => {
+  const handleBackToMobile = () => {
     if (isSubmitting) return;
 
+    setOtp("");
+    setOtpError("");
     setErrors({});
     setStep(1);
+  };
+
+  const handleOtpChange = (value: string) => {
+    const numericOtp = value.replace(/\D/g, "").slice(0, 6);
+
+    setOtp(numericOtp);
+    setOtpError("");
+  };
+
+  const handleVerifyOtp = () => {
+    if (isSubmitting) return;
+
+    if (otp.length !== 6) {
+      setOtpError("Please enter the 6-digit OTP.");
+      return;
+    }
+
+    setOtpError("");
+    setStep(3);
+  };
+
+  const handleResendOtp = () => {
+    if (isSubmitting || resendCountdown > 0) return;
+
+    setOtp("");
+    setOtpError("");
+    setResendCountdown(30);
   };
 
   const handlePlanSelect = (amount: number) => {
@@ -128,6 +183,9 @@ export default function RechargeForm() {
       setMobileNumber("");
       setSelectedOperator("Jio");
       setSelectedPlan(299);
+      setOtp("");
+      setOtpError("");
+      setResendCountdown(30);
     } catch (error) {
       console.error("Recharge failed:", error);
 
@@ -155,9 +213,9 @@ export default function RechargeForm() {
       </div>
 
       {/* Step Indicator */}
-      <div className="mb-8 flex items-center justify-center gap-3 text-sm font-semibold">
+      <div className="mb-8 flex flex-wrap items-center justify-center gap-2 text-xs font-semibold sm:gap-3 sm:text-sm">
         <span
-          className={`rounded-full px-4 py-2 ${
+          className={`rounded-full px-3 py-2 sm:px-4 ${
             step === 1
               ? "bg-blue-600 text-white"
               : "bg-green-100 text-green-700"
@@ -169,13 +227,27 @@ export default function RechargeForm() {
         <span className="text-gray-400">→</span>
 
         <span
-          className={`rounded-full px-4 py-2 ${
+          className={`rounded-full px-3 py-2 sm:px-4 ${
             step === 2
+              ? "bg-blue-600 text-white"
+              : step > 2
+                ? "bg-green-100 text-green-700"
+                : "bg-gray-100 text-gray-500"
+          }`}
+        >
+          2. OTP
+        </span>
+
+        <span className="text-gray-400">→</span>
+
+        <span
+          className={`rounded-full px-3 py-2 sm:px-4 ${
+            step === 3
               ? "bg-blue-600 text-white"
               : "bg-gray-100 text-gray-500"
           }`}
         >
-          2. Operator
+          3. Operator
         </span>
       </div>
 
@@ -234,17 +306,101 @@ export default function RechargeForm() {
 
           <button
             type="button"
-            onClick={handleContinue}
+            onClick={handleSendOtp}
             disabled={isSubmitting}
             className="w-full rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Continue
+            Send OTP
           </button>
         </div>
       )}
 
-      {/* Step 2: Operator and Recharge */}
+      {/* Step 2: OTP Verification */}
       {step === 2 && (
+        <div>
+          <div className="mb-6 text-center">
+            <h3 className="text-lg font-bold text-gray-900">
+              Verify Mobile Number
+            </h3>
+
+            <p className="mt-2 text-sm text-gray-500">
+              Enter the 6-digit OTP sent to +91 {mobileNumber}
+            </p>
+          </div>
+
+          <div className="mb-6">
+            <label
+              htmlFor="otp"
+              className="mb-2 block text-sm font-semibold text-gray-700"
+            >
+              Enter OTP
+            </label>
+
+            <input
+              id="otp"
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={6}
+              placeholder="Enter 6-digit OTP"
+              value={otp}
+              disabled={isSubmitting}
+              aria-invalid={Boolean(otpError)}
+              aria-describedby={otpError ? "otp-error" : undefined}
+              onChange={(event) => handleOtpChange(event.target.value)}
+              className={`w-full rounded-xl border px-4 py-3 text-center text-xl tracking-[0.5em] outline-none transition ${
+                otpError
+                  ? "border-red-500 focus:border-red-500"
+                  : "border-gray-300 focus:border-blue-500"
+              } disabled:cursor-not-allowed disabled:bg-gray-100`}
+            />
+
+            {otpError && (
+              <p id="otp-error" className="mt-2 text-sm text-red-600">
+                {otpError}
+              </p>
+            )}
+          </div>
+
+          <div className="mb-6 text-center text-sm text-gray-500">
+            {resendCountdown > 0 ? (
+              <p>Resend OTP in {resendCountdown}s</p>
+            ) : (
+              <button
+                type="button"
+                onClick={handleResendOtp}
+                disabled={isSubmitting}
+                className="font-semibold text-blue-600 transition hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Resend OTP
+              </button>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <button
+              type="button"
+              onClick={handleBackToMobile}
+              disabled={isSubmitting}
+              className="w-full rounded-xl border border-gray-300 bg-white px-6 py-3 font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Change Number
+            </button>
+
+            <button
+              type="button"
+              onClick={handleVerifyOtp}
+              disabled={isSubmitting}
+              className="w-full rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Verify OTP
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 3: Operator and Recharge */}
+      {step === 3 && (
         <div>
           <fieldset className="mb-6">
             <legend className="mb-3 block text-sm font-semibold text-gray-700">
@@ -322,7 +478,7 @@ export default function RechargeForm() {
           <div className="flex flex-col gap-3 sm:flex-row">
             <button
               type="button"
-              onClick={handleBack}
+              onClick={() => setStep(2)}
               disabled={isSubmitting}
               className="w-full rounded-xl border border-gray-300 bg-white px-6 py-3 font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
