@@ -324,10 +324,24 @@ export default function RechargeForm() {
           className={`rounded-full px-3 py-2 sm:px-4 ${
             step === 3
               ? "bg-blue-600 text-white"
-              : "bg-gray-100 text-gray-500"
+              : step > 3
+                ? "bg-green-100 text-green-700"
+                : "bg-gray-100 text-gray-500"
           }`}
         >
           3. Operator
+        </span>
+
+        <span className="text-gray-400">→</span>
+
+        <span
+          className={`rounded-full px-3 py-2 sm:px-4 ${
+            step === 4
+              ? "bg-blue-600 text-white"
+              : "bg-gray-100 text-gray-500"
+          }`}
+        >
+          4. Plan
         </span>
       </div>
 
@@ -479,13 +493,21 @@ export default function RechargeForm() {
         </div>
       )}
 
-      {/* Step 3: Operator and Recharge */}
+      {/* Step 3: Operator Selection */}
       {step === 3 && (
         <div>
+          <div className="mb-6 text-center">
+            <h3 className="text-lg font-bold text-gray-900">
+              Select Your Operator
+            </h3>
+
+            <p className="mt-2 text-sm text-gray-500">
+              Choose the mobile operator for your recharge.
+            </p>
+          </div>
+
           <fieldset className="mb-6">
-            <legend className="mb-3 block text-sm font-semibold text-gray-700">
-              Select Operator
-            </legend>
+            <legend className="sr-only">Select Operator</legend>
 
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {operators.map((operator) => (
@@ -502,7 +524,7 @@ export default function RechargeForm() {
                       selectedOperator: undefined,
                     }));
                   }}
-                  className={`rounded-xl border px-4 py-3 text-sm font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-200 ${
+                  className={`rounded-xl border px-4 py-4 text-sm font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-200 ${
                     selectedOperator === operator
                       ? "border-blue-600 bg-blue-50 text-blue-600"
                       : "border-gray-200 bg-white text-gray-700 hover:border-blue-300"
@@ -520,10 +542,43 @@ export default function RechargeForm() {
             )}
           </fieldset>
 
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <button
+              type="button"
+              onClick={() => setStep(2)}
+              disabled={isSubmitting}
+              className="w-full rounded-xl border border-gray-300 bg-white px-6 py-3 font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Back
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setStep(4)}
+              disabled={isSubmitting}
+              className="w-full rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 4: Plan Selection */}
+      {step === 4 && (
+        <div>
+          <div className="mb-6 text-center">
+            <h3 className="text-lg font-bold text-gray-900">
+              Choose a Recharge Plan
+            </h3>
+
+            <p className="mt-2 text-sm text-gray-500">
+              Select a plan for your {selectedOperator} recharge.
+            </p>
+          </div>
+
           <fieldset className="mb-6">
-            <legend className="mb-3 block text-sm font-semibold text-gray-700">
-              Recommended Plans
-            </legend>
+            <legend className="sr-only">Recommended Plans</legend>
 
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {plans.map((plan) => (
@@ -553,12 +608,16 @@ export default function RechargeForm() {
                 </button>
               ))}
             </div>
+
+            {errors.amount && (
+              <p className="mt-2 text-sm text-red-600">{errors.amount}</p>
+            )}
           </fieldset>
 
           <div className="flex flex-col gap-3 sm:flex-row">
             <button
               type="button"
-              onClick={() => setStep(2)}
+              onClick={() => setStep(3)}
               disabled={isSubmitting}
               className="w-full rounded-xl border border-gray-300 bg-white px-6 py-3 font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
