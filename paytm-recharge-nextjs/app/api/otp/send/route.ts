@@ -21,6 +21,7 @@ export async function POST(request: Request) {
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
   console.log(`Development OTP for ${body.mobileNumber}: ${otp}`);
+  // Development only: replace with SMS provider integration before production.
 
   const otpHash = createHash("sha256").update(otp).digest("hex");
 
